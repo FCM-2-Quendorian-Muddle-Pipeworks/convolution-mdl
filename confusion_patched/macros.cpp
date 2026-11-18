@@ -8256,10 +8256,10 @@ mdl_value_t *mdl_builtin_eval_copying(mdl_value_t *form, mdl_value_t *args)
 }
 
 
-// GNUSTO extensions: host operating-system access not present in historical MDL.
+// GIRGOL extensions: host operating-system access not present in historical MDL.
 // These use ordinary POSIX pathnames rather than MDL device/name decoding.
 
-static mdl_value_t *mdl_gnusto_errno_result(int err)
+static mdl_value_t *mdl_girgol_errno_result(int err)
 {
     mdl_value_t *details = NULL;
     details = mdl_cons_internal(mdl_new_fix(err), details);
@@ -8267,7 +8267,7 @@ static mdl_value_t *mdl_gnusto_errno_result(int err)
     return mdl_make_list(details, MDL_TYPE_FALSE);
 }
 
-static bool mdl_gnusto_path(mdl_value_t *arg, std::string &path)
+static bool mdl_girgol_path(mdl_value_t *arg, std::string &path)
 {
     if (!arg || arg->type != MDL_TYPE_STRING)
         return false;
@@ -8277,7 +8277,7 @@ static bool mdl_gnusto_path(mdl_value_t *arg, std::string &path)
     return true;
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_getenv(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_getenv(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-GETENV */
 {
     ARGSETUP(args);
@@ -8292,15 +8292,15 @@ mdl_value_t *mdl_builtin_eval_gnusto_getenv(mdl_value_t *form, mdl_value_t *args
     return value ? mdl_new_string(value) : &mdl_value_false;
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_getcwd(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_getcwd(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-GETCWD */
 {
     DENYARG(0, args);
 #ifndef _WIN32
     std::vector<char> buffer(256);
     while (!getcwd(&buffer[0], buffer.size())) {
-        if (errno != ERANGE) return mdl_gnusto_errno_result(errno);
-        if (buffer.size() > (size_t)-1 / 2) return mdl_gnusto_errno_result(ENOMEM);
+        if (errno != ERANGE) return mdl_girgol_errno_result(errno);
+        if (buffer.size() > (size_t)-1 / 2) return mdl_girgol_errno_result(ENOMEM);
         buffer.resize(buffer.size() * 2);
     }
     return mdl_new_string(&buffer[0]);
@@ -8309,7 +8309,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_getcwd(mdl_value_t *form, mdl_value_t *args
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_chdir(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_chdir(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-CHDIR */
 {
     ARGSETUP(args);
@@ -8317,16 +8317,16 @@ mdl_value_t *mdl_builtin_eval_gnusto_chdir(mdl_value_t *form, mdl_value_t *args)
     std::string path;
     GETNEXTREQARG(arg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
 #ifndef _WIN32
     if (chdir(path.c_str()) == 0) return mdl_value_T;
-    return mdl_gnusto_errno_result(errno);
+    return mdl_girgol_errno_result(errno);
 #else
     return mdl_call_error("GIRGOL-CHDIR-UNSUPPORTED", NULL);
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_mkdir(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_mkdir(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-MKDIR */
 {
     ARGSETUP(args);
@@ -8336,7 +8336,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_mkdir(mdl_value_t *form, mdl_value_t *args)
     GETNEXTREQARG(arg, args);
     GETNEXTARG(modearg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
     if (modearg) {
         if (modearg->type != MDL_TYPE_FIX || modearg->v.w < 0 || modearg->v.w > 07777)
             return mdl_call_error("SECOND-ARG-WRONG-TYPE", NULL);
@@ -8344,13 +8344,13 @@ mdl_value_t *mdl_builtin_eval_gnusto_mkdir(mdl_value_t *form, mdl_value_t *args)
     }
 #ifndef _WIN32
     if (mkdir(path.c_str(), mode) == 0) return mdl_value_T;
-    return mdl_gnusto_errno_result(errno);
+    return mdl_girgol_errno_result(errno);
 #else
     return mdl_call_error("GIRGOL-MKDIR-UNSUPPORTED", NULL);
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_makedirs(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_makedirs(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-MAKEDIRS */
 {
     ARGSETUP(args);
@@ -8362,7 +8362,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_makedirs(mdl_value_t *form, mdl_value_t *ar
     GETNEXTARG(modearg, args);
     NOMOREARGS(args);
 
-    if (!mdl_gnusto_path(arg, path))
+    if (!mdl_girgol_path(arg, path))
         return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
 
     if (modearg) {
@@ -8376,7 +8376,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_makedirs(mdl_value_t *form, mdl_value_t *ar
 
 #ifndef _WIN32
     if (path.empty())
-        return mdl_gnusto_errno_result(ENOENT);
+        return mdl_girgol_errno_result(ENOENT);
 
     std::string current;
     size_t pos = 0;
@@ -8404,24 +8404,24 @@ mdl_value_t *mdl_builtin_eval_gnusto_makedirs(mdl_value_t *form, mdl_value_t *ar
 
         if (stat(current.c_str(), &st) == 0) {
             if (!S_ISDIR(st.st_mode))
-                return mdl_gnusto_errno_result(ENOTDIR);
+                return mdl_girgol_errno_result(ENOTDIR);
         } else {
             int stat_error = errno;
 
             if (stat_error != ENOENT)
-                return mdl_gnusto_errno_result(stat_error);
+                return mdl_girgol_errno_result(stat_error);
 
             if (mkdir(current.c_str(), mode) != 0) {
                 int mkdir_error = errno;
 
                 if (mkdir_error != EEXIST)
-                    return mdl_gnusto_errno_result(mkdir_error);
+                    return mdl_girgol_errno_result(mkdir_error);
 
                 if (stat(current.c_str(), &st) != 0)
-                    return mdl_gnusto_errno_result(errno);
+                    return mdl_girgol_errno_result(errno);
 
                 if (!S_ISDIR(st.st_mode))
-                    return mdl_gnusto_errno_result(ENOTDIR);
+                    return mdl_girgol_errno_result(ENOTDIR);
             }
         }
 
@@ -8434,7 +8434,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_makedirs(mdl_value_t *form, mdl_value_t *ar
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_unlink(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_unlink(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-UNLINK */
 {
     ARGSETUP(args);
@@ -8442,16 +8442,16 @@ mdl_value_t *mdl_builtin_eval_gnusto_unlink(mdl_value_t *form, mdl_value_t *args
     std::string path;
     GETNEXTREQARG(arg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(arg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
 #ifndef _WIN32
     if (unlink(path.c_str()) == 0) return mdl_value_T;
-    return mdl_gnusto_errno_result(errno);
+    return mdl_girgol_errno_result(errno);
 #else
     return mdl_call_error("GIRGOL-UNLINK-UNSUPPORTED", NULL);
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_symlink(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_symlink(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-SYMLINK */
 {
     ARGSETUP(args);
@@ -8460,17 +8460,17 @@ mdl_value_t *mdl_builtin_eval_gnusto_symlink(mdl_value_t *form, mdl_value_t *arg
     GETNEXTREQARG(targetarg, args);
     GETNEXTREQARG(linkarg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(targetarg, target) || !mdl_gnusto_path(linkarg, linkpath))
+    if (!mdl_girgol_path(targetarg, target) || !mdl_girgol_path(linkarg, linkpath))
         return mdl_call_error("ARGUMENT-WRONG-TYPE", NULL);
 #ifndef _WIN32
     if (symlink(target.c_str(), linkpath.c_str()) == 0) return mdl_value_T;
-    return mdl_gnusto_errno_result(errno);
+    return mdl_girgol_errno_result(errno);
 #else
     return mdl_call_error("GIRGOL-SYMLINK-UNSUPPORTED", NULL);
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_chmod(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_chmod(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-CHMOD */
 {
     ARGSETUP(args);
@@ -8479,18 +8479,18 @@ mdl_value_t *mdl_builtin_eval_gnusto_chmod(mdl_value_t *form, mdl_value_t *args)
     GETNEXTREQARG(patharg, args);
     GETNEXTREQARG(modearg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
     if (modearg->type != MDL_TYPE_FIX || modearg->v.w < 0 || modearg->v.w > 07777)
         return mdl_call_error("SECOND-ARG-WRONG-TYPE", NULL);
 #ifndef _WIN32
     if (chmod(path.c_str(), (mode_t)modearg->v.w) == 0) return mdl_value_T;
-    return mdl_gnusto_errno_result(errno);
+    return mdl_girgol_errno_result(errno);
 #else
     return mdl_call_error("GIRGOL-CHMOD-UNSUPPORTED", NULL);
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_stat(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_stat(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-STAT */
 {
     ARGSETUP(args);
@@ -8498,10 +8498,10 @@ mdl_value_t *mdl_builtin_eval_gnusto_stat(mdl_value_t *form, mdl_value_t *args)
     std::string path;
     GETNEXTREQARG(patharg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
 #ifndef _WIN32
     struct stat st;
-    if (stat(path.c_str(), &st) != 0) return mdl_gnusto_errno_result(errno);
+    if (stat(path.c_str(), &st) != 0) return mdl_girgol_errno_result(errno);
     // VECTOR slots: mode, size, uid, gid, atime, mtime, ctime, dev, ino, nlink.
     mdl_value_t *result = mdl_new_empty_vector(10, MDL_TYPE_VECTOR);
     mdl_value_t *v = VREST(result, 0);
@@ -8521,7 +8521,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_stat(mdl_value_t *form, mdl_value_t *args)
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_directory_list(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_directory_list(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-DIRECTORY-LIST */
 {
     ARGSETUP(args);
@@ -8529,10 +8529,10 @@ mdl_value_t *mdl_builtin_eval_gnusto_directory_list(mdl_value_t *form, mdl_value
     std::string path;
     GETNEXTREQARG(patharg, args);
     NOMOREARGS(args);
-    if (!mdl_gnusto_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
+    if (!mdl_girgol_path(patharg, path)) return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
 #ifndef _WIN32
     DIR *dir = opendir(path.c_str());
-    if (!dir) return mdl_gnusto_errno_result(errno);
+    if (!dir) return mdl_girgol_errno_result(errno);
     std::vector<std::string> names;
     struct dirent *entry;
     errno = 0;
@@ -8542,7 +8542,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_directory_list(mdl_value_t *form, mdl_value
     }
     int read_error = errno;
     closedir(dir);
-    if (read_error) return mdl_gnusto_errno_result(read_error);
+    if (read_error) return mdl_girgol_errno_result(read_error);
     std::sort(names.begin(), names.end());
     mdl_value_t *list = NULL;
     for (std::vector<std::string>::const_iterator i = names.begin(); i != names.end(); ++i)
@@ -8561,7 +8561,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_directory_list(mdl_value_t *form, mdl_value
 #endif
 }
 
-mdl_value_t *mdl_builtin_eval_gnusto_execute(mdl_value_t *form, mdl_value_t *args)
+mdl_value_t *mdl_builtin_eval_girgol_execute(mdl_value_t *form, mdl_value_t *args)
 /* SUBR GIRGOL-EXECUTE */
 {
     ARGSETUP(args);
@@ -8573,7 +8573,7 @@ mdl_value_t *mdl_builtin_eval_gnusto_execute(mdl_value_t *form, mdl_value_t *arg
     GETNEXTARG(inputarg, args);
     NOMOREARGS(args);
 
-    if (!mdl_gnusto_path(programarg, program) || program.empty())
+    if (!mdl_girgol_path(programarg, program) || program.empty())
         return mdl_call_error("FIRST-ARG-WRONG-TYPE", NULL);
     if (argvarg->type != MDL_TYPE_VECTOR)
         return mdl_call_error("SECOND-ARG-WRONG-TYPE", NULL);
@@ -8610,20 +8610,20 @@ int argc = VLENGTH(argvarg);
     int stdin_pipe[2] = {-1, -1};
 
     if (pipe(exec_pipe) != 0)
-        return mdl_gnusto_errno_result(errno);
+        return mdl_girgol_errno_result(errno);
 
     if (fcntl(exec_pipe[1], F_SETFD, FD_CLOEXEC) == -1) {
         int err = errno;
         close(exec_pipe[0]);
         close(exec_pipe[1]);
-        return mdl_gnusto_errno_result(err);
+        return mdl_girgol_errno_result(err);
     }
 
     if (inputarg && pipe(stdin_pipe) != 0) {
         int err = errno;
         close(exec_pipe[0]);
         close(exec_pipe[1]);
-        return mdl_gnusto_errno_result(err);
+        return mdl_girgol_errno_result(err);
     }
 
     pid_t pid = fork();
@@ -8636,7 +8636,7 @@ int argc = VLENGTH(argvarg);
             close(stdin_pipe[0]);
             close(stdin_pipe[1]);
         }
-        return mdl_gnusto_errno_result(err);
+        return mdl_girgol_errno_result(err);
     }
 
     if (pid == 0) {
@@ -8704,15 +8704,15 @@ int argc = VLENGTH(argvarg);
     while (waitpid(pid, &status, 0) == -1) {
         if (errno == EINTR)
             continue;
-        return mdl_gnusto_errno_result(errno);
+        return mdl_girgol_errno_result(errno);
     }
 
     if (pipe_error)
-        return mdl_gnusto_errno_result(pipe_error);
+        return mdl_girgol_errno_result(pipe_error);
     if (got > 0)
-        return mdl_gnusto_errno_result(exec_error);
+        return mdl_girgol_errno_result(exec_error);
     if (input_error)
-        return mdl_gnusto_errno_result(input_error);
+        return mdl_girgol_errno_result(input_error);
 
     if (WIFEXITED(status))
         return mdl_new_fix(WEXITSTATUS(status));
